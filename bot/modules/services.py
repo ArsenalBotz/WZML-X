@@ -34,7 +34,7 @@ async def start(_, message):
     buttons.url_button(
         lang.START_BUTTON1, "https://www.github.com/SilentDemonSD/WZML-X"
     )
-    buttons.url_button(lang.START_BUTTON2, "https://t.me/WZML_X")
+    buttons.url_button(lang.START_BUTTON2, "https://t.me/Public_Mirror_Leech_Group")
     reply_markup = buttons.build_menu(2)
 
     if len(message.command) > 1 and message.command[1] == "wzmlx":
@@ -98,7 +98,7 @@ async def start(_, message):
     else:
         await send_message(
             message,
-            "<i>Bot can mirror/leech from links|tgfiles|torrents|nzb|rclone-cloud to any rclone cloud, Google Drive or to telegram.\n\n⚠️ You Are not authorized user! Deploy your own WZML-X bot</i>",
+            "<i>Bot can mirror/leech from links|tgfiles|torrents|nzb|rclone-cloud to any rclone cloud, Google Drive or to telegram.\n\n⚠️ You Are not authorized user!</i>",
             reply_markup,
         )
     await database.set_pm_users(userid)
@@ -245,7 +245,7 @@ async def log_cb(_, query):
         cget = create_scraper().request
         resp = cget("POST", "https://spaceb.in/", headers=headers, data=data)
         if resp.status_code == 200:
-            await query.answer("Generating..")
+            await query.answer("Generating...")
             btn = ButtonMaker()
             btn.url_button("📨 Web Paste (SB)", resp.url)
             await edit_reply_markup(message, btn.build_menu(1))
