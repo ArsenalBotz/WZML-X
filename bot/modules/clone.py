@@ -19,7 +19,8 @@ from ..helper.ext_utils.links_utils import (
     is_rclone_path,
     is_share_link,
 )
-from ..helper.ext_utils.task_manager import pre_task_check, stop_duplicate_check
+from ..helper.ext_utils.task_manager import pre_task_check, stop_duplicate_check, limit_checker
+from ..helper.ext_utils.status_utils import get_readable_file_size
 from ..helper.listeners.task_listener import TaskListener
 from ..helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
@@ -124,24 +125,18 @@ class Clone(TaskListener):
             await send_message(
                 self.message, COMMAND_USAGE["clone"][0], COMMAND_USAGE["clone"][1]
             )
+            await delete_links(self.message)
             return
         LOGGER.info(self.link)
         try:
             await self.before_start()
         except Exception as e:
             await send_message(self.message, e)
+            await delete_links(self.message)
             return
 
-        self.source_url = (
-            self.link
-            if len(self.link) > 0 and self.link.startswith("http")
-            else (
-                f"https://t.me/share/url?url={self.link}"
-                if self.link
-                else self.message.link
-            )
-        )
         self._set_mode_engine()
+        await delete_links(self.message)
 
         await self._proceed_to_clone(sync)
 
@@ -165,6 +160,14 @@ class Clone(TaskListener):
             msg, button = await stop_duplicate_check(self)
             if msg:
                 await send_message(self.message, msg, button)
+                return
+            if limit_exceeded := await limit_checker(self):
+                await send_message(self.message, f"""〶 <b><i><u>Limit Breached:</u></i></b>
+│
+┟ <b>Task Size</b> → {get_readable_file_size(self.size)}
+┠ <b>In Mode</b> → {self.mode[0]}
+┠ <b>Out Mode</b> → {self.mode[1]}
+{limit_exceeded}""")
                 return
             await self.on_download_start()
             LOGGER.info(f"Clone Started: Name: {self.name} - Source: {self.link}")

@@ -19,7 +19,6 @@ from ..telegram_helper.button_build import ButtonMaker
 
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
 
-
 class MirrorStatus:
     STATUS_UPLOAD = "Upload"
     STATUS_DOWNLOAD = "Download"
@@ -116,6 +115,11 @@ async def get_all_tasks(req_status: str, user_id):
     async with task_dict_lock:
         return await get_specific_tasks(req_status, user_id)
 
+
+def get_raw_file_size(size):
+    num, unit = size.split()
+    return int(float(num) * (1024 ** SIZE_UNITS.index(unit)))
+    
 
 def get_readable_file_size(size_in_bytes):
     if not size_in_bytes:
@@ -249,7 +253,10 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
             if tstatus == MirrorStatus.STATUS_DOWNLOAD and (
                 task.listener.is_torrent or task.listener.is_qbit
             ):
-                msg += f"\n┠ <b>Seeders</b> → {task.seeders_num()} | <b>Leechers</b> → {task.leechers_num()}"
+                try:
+                    msg += f"\n┠ <b>Seeders</b> → {task.seeders_num()} | <b>Leechers</b> → {task.leechers_num()}"
+                except Exception:
+                    pass
             # TODO: Add Connected Peers
         elif tstatus == MirrorStatus.STATUS_SEED:
             msg += f"\n┠ <b>Size</b> → <i>{task.size()}</i> | <b>Uploaded</b>  → <i>{task.uploaded_bytes()}</i>"
